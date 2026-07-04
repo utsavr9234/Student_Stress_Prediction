@@ -123,6 +123,7 @@ def data():
 #data()
 
 st.title("Student Stress Prediction")
+st.text(sns.__version__)
 
 
 if st.button("Button",use_container_width=True):
