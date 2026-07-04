@@ -2,6 +2,14 @@ import streamlit as st
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 
 df=pd.read_csv("Student LifeStyle.csv")
 
@@ -141,13 +149,59 @@ def data():
     df["Student_Type"]=df["Student_Type"].map({1:"School",2:"College",3:"Working Student"})
     st.write(df)
 
+
+def stressCal(exam_pressue_input,sleep_hours_input ,study_hours_input ,attendance_input ,family_support_input):
+    X = df[["Exam_Pressure", "Sleep_Hours", "Study_Hours", "Attendance", "Family_Support"]]
+    Y = df["Stress_Level"]
+    X_train,X_test,Y_train,Y_test=train_test_split(X,Y,test_size=0.30,random_state=10)
+
+    
+    scaler=StandardScaler()
+    X_train=scaler.fit_transform(X_train)
+    X_test=scaler.transform(X_test)
+
+    model = LogisticRegression()
+    model.fit(X, Y)
+    model1 = DecisionTreeClassifier()
+    model1.fit(X, Y)
+    model2 = RandomForestClassifier()
+    model2.fit(X, Y)
+    model3 = SVC()
+    model3.fit(X, Y)
+    model4 = KNeighborsClassifier()
+    model4.fit(X, Y)
+    model5 = GradientBoostingClassifier()
+    model5.fit(X, Y)
+
+    scaled_input1 = scaler.transform([[exam_pressue_input,sleep_hours_input ,study_hours_input ,attendance_input ,family_support_input]])
+    LR=model.predict(scaled_input1)
+    st.success(f"🧠 Predicted Stress Score: **{LR.item():.2f} / 10**")
+
+    st.metric(
+        label="Estimated Stress Level", 
+        value=f"{LR.item():.2f}",
+        delta="High Risk" if LR.item() == 1 else "Normal"  # Optional: adds a visual status indicator
+    )
+
 #data()
 
 st.title("Student Stress Prediction")
 #st.text(sns.__version__)
+exam_pressue_input = st.number_input('Rate Exam Pressure (1(Min)-10(Max)):', min_value=1, value=1, step=1, max_value=10)
+sleep_hours_input = st.number_input('Sleep Duration (Hours)::', min_value=0.00, value=0.00, step=0.01, max_value=24.00)
+study_hours_input = st.number_input('Study Duration (Hours)::', min_value=0.00, value=0.00, step=0.01, max_value=24.00)
+attendance_input = st.number_input('Attendance (Percentage)::', min_value=0.00, value=0.00, step=0.01, max_value=100.00)
+family_support_input = st.radio("Do you have family support?",options=["Yes","No"],horizontal=True)
 
+if family_support_input=="Yes":
+    family_support_input=1
+elif family_support_input=="No":
+    family_support_input=0
+else:
+    family_support_input=-1
 
 if st.button("Button",use_container_width=True):
+    stressCal(exam_pressue_input,sleep_hours_input ,study_hours_input ,attendance_input ,family_support_input)
     data()
 
 if st.button("Clear",use_container_width=True):
