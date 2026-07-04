@@ -118,12 +118,13 @@ def data():
     ax2.set_title("Stress Level vs Average Exam Pressure")
     st.pyplot(fig2)
 
+    df["Student_Type"]=df["Student_Type"].map({1:"School",2:"College",3:"Working Student"})
     st.write(df)
 
 #data()
 
 st.title("Student Stress Prediction")
-st.text(sns.__version__)
+#st.text(sns.__version__)
 
 
 if st.button("Button",use_container_width=True):
