@@ -12,6 +12,14 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from improved import display_student_metrics,display_global_data
 
+def clear_form_callback():
+    st.cache_resource.clear()
+    st.session_state.exam_pressue_input = 1
+    st.session_state.sleep_hours_input = 0.0
+    st.session_state.study_hours_input = 0.0
+    st.session_state.attendance_input = 0.0
+    st.session_state.family_support_input = 1
+
 df=pd.read_csv("Student LifeStyle.csv")
 
 #df.shape
@@ -255,12 +263,23 @@ def stressCal(exam_pressue_input,sleep_hours_input ,study_hours_input ,attendanc
 
 st.title("Student Stress Prediction 🧠🤓")
 #st.text(sns.__version__)
-exam_pressue_input = st.number_input('Rate Exam Pressure (1(Min)-10(Max)):', min_value=1, value=1, step=1, max_value=10)
-sleep_hours_input = st.number_input('Sleep Duration (Hours)::', min_value=0.00, value=0.00, step=0.01, max_value=24.00)
-study_hours_input = st.number_input('Study Duration (Hours)::', min_value=0.00, value=0.00, step=0.01, max_value=24.00)
-attendance_input = st.number_input('Attendance (Percentage)::', min_value=0.00, value=0.00, step=0.01, max_value=100.00)
-family_support_input = st.number_input('Rate Family Support (1(Min)-10(Max)):', min_value=1, value=1, step=1, max_value=10)
+exam_pressue_input = st.number_input('Rate Exam Pressure (1(Min)-10(Max)):', min_value=1, max_value=10, step=1, key="exam_pressue_input")
+sleep_hours_input = st.number_input('Sleep Duration (Hours):', min_value=0.0, max_value=24.0, step=0.01, key="sleep_hours_input")
+study_hours_input = st.number_input('Study Duration (Hours):', min_value=0.0, max_value=24.0, step=0.01, key="study_hours_input")
+attendance_input = st.number_input('Attendance (Percentage):', min_value=0.0, max_value=100.0, step=0.01, key="attendance_input")
+family_support_input = st.number_input('Rate Family Support (1(Min)-10(Max)):', min_value=1, max_value=10, step=1, key="family_support_input")
 
+# Initialize session state defaults so the app doesn't crash on first load
+if "exam_pressue_input" not in st.session_state:
+    st.session_state.exam_pressue_input = 1
+if "sleep_hours_input" not in st.session_state:
+    st.session_state.sleep_hours_input = 0.0
+if "study_hours_input" not in st.session_state:
+    st.session_state.study_hours_input = 0.0
+if "attendance_input" not in st.session_state:
+    st.session_state.attendance_input = 0.0
+if "family_support_input" not in st.session_state:
+    st.session_state.family_support_input = 1
 
 if family_support_input=="Yes":
     family_support_input=1
@@ -277,6 +296,13 @@ if st.button("Button",use_container_width=True):
         display_student_metrics(exam_pressue_input, sleep_hours_input, study_hours_input, attendance_input, family_support_input, LR.item())
         display_global_data()
 
-if st.button("Clear",use_container_width=True):
-        st.cache_resource.clear()
+# if st.button("Clear",use_container_width=True):
+#     st.cache_resource.clear()
+#     st.session_state.exam_pressue_input = 1
+#     st.session_state.sleep_hours_input = 0.00
+#     st.session_state.study_hours_input = 0.00
+#     st.session_state.attendance_input = 0.00
+#     st.session_state.family_support_input = 1
+#     st.rerun()
 
+st.button("Clear", use_container_width=True, on_click=clear_form_callback)
