@@ -140,14 +140,65 @@ def data():
         plt.tight_layout()
         st.pyplot(fig2)
 
-    fig2, ax2 = plt.subplots(figsize=(10, 4.5))
+    #fig2, ax2 = plt.subplots(figsize=(10, 4.5))
     # Fixed the empty sns.barplot() error by providing valid data and adding a cool 'coolwarm' palette
-    sns.heatmap(df1.corr(), annot=True, ax=ax2)
-    ax2.set_title("Stress Level vs Average Exam Pressure")
-    st.pyplot(fig2)
+    #sns.heatmap(df1.corr(), annot=True, ax=ax2)
+    #ax2.set_title("Stress Level vs Average Exam Pressure")
+    #st.pyplot(fig2)
 
-    df["Student_Type"]=df["Student_Type"].map({1:"School",2:"College",3:"Working Student"})
-    st.write(df)
+    #df["Student_Type"]=df["Student_Type"].map({1:"School",2:"College",3:"Working Student"})
+    #st.write(df)
+
+
+def StudentData(exam_pressure_input, sleep_hours_input, study_hours_input, attendance_input, family_support_input, Stress_Level):
+    st.subheader("🎯 Your Personalized Stress Metrics")
+    
+    # 1. Convert the user's current inputs into a single-row DataFrame
+    user_df = pd.DataFrame([{
+        "Exam_Pressure": exam_pressure_input,
+        "Sleep_Hours": sleep_hours_input,
+        "Study_Hours": study_hours_input,
+        "Attendance": attendance_input,
+        "Family_Support": family_support_input,
+        "Stress_Level": Stress_Level
+    }])
+
+    # 2. Set up the display layout
+    col1, col2 = st.columns(2)
+
+    with col1:
+        fig1, ax1 = plt.subplots(figsize=(6, 4.5))
+        # Plotting ONLY the user's data point as a bar chart
+        sns.barplot(x="Exam_Pressure", y="Stress_Level", data=user_df, color="#e15759", ax=ax1)
+        ax1.set_title("Your Current Exam Pressure vs Stress Level")
+        ax1.set_ylim(0, 10)  # Keeps the y-axis standard up to max stress score
+        plt.tight_layout()
+        st.pyplot(fig1)
+
+    with col2:
+        fig2, ax2 = plt.subplots(figsize=(6, 4.5))
+        # Plotting another user metrics context: Study Hours vs Sleep Hours
+        sns.barplot(x="Study_Hours", y="Sleep_Hours", data=user_df, color="#4e79a7", ax=ax2)
+        ax2.set_title("Your Allocation: Study Hours vs Sleep Hours")
+        ax2.set_ylim(0, 24)  # Maximum possible hours in a day
+        plt.tight_layout()
+        st.pyplot(fig2)
+
+    # --- An Elegant Alternative: Showing the user where they stand against the group ---
+    st.subheader("📊 Where You Stand Compared to Other Students")
+    fig3, ax3 = plt.subplots(figsize=(10, 4.5))
+    
+    # Plot the background historical distribution data using the main database (df1)
+    sns.scatterplot(x="Exam_Pressure", y="Stress_Level", hue="Stress_Level", palette="flare", data=df1, alpha=0.4, ax=ax3)
+    
+    # Overlay the current user's specific input onto the group chart as a huge, bright star
+    ax3.scatter(exam_pressure_input, Stress_Level, color="gold", s=300, marker="*", edgecolor="black", linewidth=1.5, label="Your Profile", zorder=5)
+    
+    ax3.set_title("Your Placement on the Global Exam Pressure vs Stress Map")
+    ax3.legend()
+    st.pyplot(fig3)
+
+
 
 
 def stressCal(exam_pressue_input,sleep_hours_input ,study_hours_input ,attendance_input ,family_support_input):
@@ -161,27 +212,43 @@ def stressCal(exam_pressue_input,sleep_hours_input ,study_hours_input ,attendanc
     X_test=scaler.transform(X_test)
 
     model = LogisticRegression()
-    model.fit(X, Y)
+    model.fit(X_train, Y_train)
     model1 = DecisionTreeClassifier()
-    model1.fit(X, Y)
+    model1.fit(X_train, Y_train)
     model2 = RandomForestClassifier()
-    model2.fit(X, Y)
+    model2.fit(X_train, Y_train)
     model3 = SVC()
-    model3.fit(X, Y)
+    model3.fit(X_train, Y_train)
     model4 = KNeighborsClassifier()
-    model4.fit(X, Y)
+    model4.fit(X_train, Y_train)
     model5 = GradientBoostingClassifier()
-    model5.fit(X, Y)
+    model5.fit(X_train, Y_train)
 
     scaled_input1 = scaler.transform([[exam_pressue_input,sleep_hours_input ,study_hours_input ,attendance_input ,family_support_input]])
     LR=model.predict(scaled_input1)
-    st.success(f"🧠 Predicted Stress Score: **{LR.item():.2f} / 10**")
+    #logistic=model.predict(scaler.transform([[9.0, 7.419726,6.442748,81.452460,5.0]]))
+    #st.text(logistic)
+    # Extract the binary prediction value (0 or 1)
+    prediction = int(LR.item())
 
+    # Map the binary outputs to user-friendly text labels
+    if prediction == 1:
+        status_text = "Stressed"
+        status_delta = "High Risk"
+        st.error(f"⚠️ Prediction: The model indicates you are currently **{status_text}**.")
+    else:
+        status_text = "Not Stressed"
+        status_delta = "Normal / Low Risk"
+        st.success(f"✅ Prediction: The model indicates you are **{status_text}**.")
+
+    # Display clean metric cards without confusing decimals
     st.metric(
-        label="Estimated Stress Level", 
-        value=f"{LR.item():.2f}",
-        delta="High Risk" if LR.item() == 1 else "Normal"  # Optional: adds a visual status indicator
+        label="Estimated Stress Status", 
+        value=status_text,
+        delta=status_delta,
+        delta_color="inverse" if prediction == 1 else "normal"  # Colors red for High Risk, green for Normal
     )
+    return LR
 
 #data()
 
@@ -191,7 +258,8 @@ exam_pressue_input = st.number_input('Rate Exam Pressure (1(Min)-10(Max)):', min
 sleep_hours_input = st.number_input('Sleep Duration (Hours)::', min_value=0.00, value=0.00, step=0.01, max_value=24.00)
 study_hours_input = st.number_input('Study Duration (Hours)::', min_value=0.00, value=0.00, step=0.01, max_value=24.00)
 attendance_input = st.number_input('Attendance (Percentage)::', min_value=0.00, value=0.00, step=0.01, max_value=100.00)
-family_support_input = st.radio("Do you have family support?",options=["Yes","No"],horizontal=True)
+family_support_input = st.number_input('Rate Family Support (1(Min)-10(Max)):', min_value=1, value=1, step=1, max_value=10)
+
 
 if family_support_input=="Yes":
     family_support_input=1
@@ -201,7 +269,8 @@ else:
     family_support_input=-1
 
 if st.button("Button",use_container_width=True):
-    stressCal(exam_pressue_input,sleep_hours_input ,study_hours_input ,attendance_input ,family_support_input)
+    LR=stressCal(exam_pressue_input,sleep_hours_input ,study_hours_input ,attendance_input ,family_support_input)
+    StudentData(exam_pressue_input,sleep_hours_input ,study_hours_input ,attendance_input ,family_support_input,LR.item())
     data()
 
 if st.button("Clear",use_container_width=True):
