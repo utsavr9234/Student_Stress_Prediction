@@ -10,6 +10,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import GradientBoostingClassifier
+from improved import display_student_metrics,display_global_data
 
 df=pd.read_csv("Student LifeStyle.csv")
 
@@ -233,11 +234,11 @@ def stressCal(exam_pressue_input,sleep_hours_input ,study_hours_input ,attendanc
 
     # Map the binary outputs to user-friendly text labels
     if prediction == 1:
-        status_text = "Stressed"
+        status_text = "Stressed 😖🫩"
         status_delta = "High Risk"
         st.error(f"⚠️ Prediction: The model indicates you are currently **{status_text}**.")
     else:
-        status_text = "Not Stressed"
+        status_text = "Not Stressed 🥳 "
         status_delta = "Normal / Low Risk"
         st.success(f"✅ Prediction: The model indicates you are **{status_text}**.")
 
@@ -252,7 +253,7 @@ def stressCal(exam_pressue_input,sleep_hours_input ,study_hours_input ,attendanc
 
 #data()
 
-st.title("Student Stress Prediction")
+st.title("Student Stress Prediction 🧠🤓")
 #st.text(sns.__version__)
 exam_pressue_input = st.number_input('Rate Exam Pressure (1(Min)-10(Max)):', min_value=1, value=1, step=1, max_value=10)
 sleep_hours_input = st.number_input('Sleep Duration (Hours)::', min_value=0.00, value=0.00, step=0.01, max_value=24.00)
@@ -272,6 +273,10 @@ if st.button("Button",use_container_width=True):
     LR=stressCal(exam_pressue_input,sleep_hours_input ,study_hours_input ,attendance_input ,family_support_input)
     StudentData(exam_pressue_input,sleep_hours_input ,study_hours_input ,attendance_input ,family_support_input,LR.item())
     data()
+    if st.button("Run Advanced Visuals",use_container_width=True):
+        display_student_metrics(exam_pressue_input, sleep_hours_input, study_hours_input, attendance_input, family_support_input, LR.item())
+        display_global_data()
 
 if st.button("Clear",use_container_width=True):
         st.cache_resource.clear()
+
