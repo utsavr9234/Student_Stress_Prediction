@@ -12,14 +12,14 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import accuracy_score
 
-# --- Page Configuration ---
+#Page Configuration
 st.set_page_config(
     page_title="Student Stress Analytics & Prediction",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- Session State Initialization ---
+#set the intial state 
 if "exam_pressue_input" not in st.session_state:
     st.session_state.exam_pressue_input = 1
 if "sleep_hours_input" not in st.session_state:
@@ -42,10 +42,9 @@ def clear_form_callback():
     st.session_state.family_support_input = 5
     st.session_state.Social_Media_input = 2.0
 
-# --- Cached Data Engine ---
 @st.cache_data
 def load_and_preprocess_data():
-    # Mocking reading from file pipeline (Replace with actual destination path)
+    #read the csv file and mapping the values like school =1 etc
     df = pd.read_csv("Student LifeStyle.csv")
     df["Student_Type"] = df["Student_Type"].map({"school": 1, "college": 2, "working_student": 3})
     student_type_mode = df["Student_Type"].mode()[0]
@@ -58,7 +57,7 @@ def load_and_preprocess_data():
         
     df.drop_duplicates(inplace=True)
     
-    # Unified IQR Outlier Removal logic
+    #IQR Calculation and removal of outliers
     target_cols = ["Exam_Pressure", "Sleep_Hours", "Study_Hours", "Attendance", "Family_Support", "Social_Media_Hours", "Stress_Level"]
     outlier_indices = set()
     for col in target_cols:
@@ -77,8 +76,7 @@ def load_and_preprocess_data():
 
 df1 = load_and_preprocess_data()
 sns.set_theme(style="whitegrid")
-
-# --- Cached ML Models Training ---
+#training the model and analysing the situation with 6 models below 
 @st.cache_resource
 def train_ml_models(dataframe):
     X = dataframe[["Exam_Pressure", "Sleep_Hours", "Study_Hours", "Attendance", "Family_Support", "Student_Type", "Social_Media_Hours"]]
